@@ -7,8 +7,8 @@ module.exports = function(grunt) {
                 "* <%= pkg.homepage %>\n" +
                 "* Copyright (c) <%= grunt.template.today(\"yyyy\") %> <%= pkg.authors %>;\n" +
                 "* Dual Licensed: <%= _.pluck(pkg.licenses, \"type\").join(\", \") %>\n" +
-                "* https://github.com/misoproject/storyboard/blob/master/LICENSE-MIT \n" +
-                "* https://github.com/misoproject/storyboard/blob/master/LICENSE-GPL \n" +
+                "* https://github.com/madebykind/storyboard/blob/master/LICENSE-MIT \n" +
+                "* https://github.com/madebykind/storyboard/blob/master/LICENSE-GPL \n" +
                 "*/";
 
   grunt.initConfig({
@@ -21,7 +21,7 @@ module.exports = function(grunt) {
 
     node: {
       wrapper: "src/node/compat.js",
-      misoStoryboard: "dist/miso.storyboard.<%= pkg.version %>.js"
+      storyboard: "dist/storyboard.<%= pkg.version %>.js"
     },
 
     concat : {
@@ -30,30 +30,30 @@ module.exports = function(grunt) {
       },
 
       fullnodeps: {
-        dest: "dist/miso.storyboard.<%= pkg.version %>.js",
+        dest: "dist/storyboard.<%= pkg.version %>.js",
         src: [
           "<%= meta.banner %>",
-          "src/events.js",
           "src/storyboard.js"
         ]
       },
 
       requirenodeps: {
-        dest: "dist/miso.storyboard.r.<%= pkg.version %>.js",
+        dest: "dist/storyboard.r.<%= pkg.version %>.js",
         src: [
           "<%= meta.banner %>",
-          "dist/miso.storyboard.<%= pkg.version %>.js",
+          "dist/storyboard.<%= pkg.version %>.js",
           "src/require.js"
         ]
       },
 
       fulldeps: {
-        dest : "dist/miso.storyboard.deps.<%= pkg.version %>.js",
+        dest : "dist/storyboard.deps.<%= pkg.version %>.js",
         src : [
           "<%= meta.banner %>",
-          "libs/lodash.js",
-          "libs/underscore.deferred.js",
-          "dist/miso.storyboard.<%= pkg.version %>.js"
+          "libs/lodash-compat.js",
+          "libs/backbone-events-standalone.js",
+          "libs/rsvp.js",
+          "dist/storyboard.<%= pkg.version %>.js"
         ]
       },
 
@@ -78,17 +78,17 @@ module.exports = function(grunt) {
         banner : fullBanner
       },
       minnodeps : {
-        dest : "dist/miso.storyboard.min.<%= pkg.version %>.js",
+        dest : "dist/storyboard.min.<%= pkg.version %>.js",
         src : [
           "<%= meta.banner >",
-          "dist/miso.storyboard.<%= pkg.version %>.js"
+          "dist/storyboard.<%= pkg.version %>.js"
         ]
       },
       mindeps : {
-        dest : "dist/miso.storyboard.deps.min.<%= pkg.version %>.js",
+        dest : "dist/storyboard.deps.min.<%= pkg.version %>.js",
         src : [
           "<%= meta.banner %>",
-          "dist/miso.storyboard.deps.<%= pkg.version %>.js"
+          "dist/storyboard.deps.<%= pkg.version %>.js"
         ]
       }
     },
@@ -145,7 +145,7 @@ module.exports = function(grunt) {
         browser : true,
         bitwise  : true,
         loopfunc : true,
-        predef : [ "_", "Miso", "require", "exports", "define" ]
+        predef : [ "_", "require", "exports", "define" ]
       },
       globals : {
         QUnit : true,
@@ -166,7 +166,6 @@ module.exports = function(grunt) {
     },
 
     files : [
-      "src/events.js",
       "src/require.js",
       "src/storyboard.js",
       "src/node/compat.js",
@@ -182,12 +181,12 @@ module.exports = function(grunt) {
 
     var output = grunt.template.process(read(nodeConfig.wrapper), {
       data : {
-        misoStoryboard : read(grunt.template.process(nodeConfig.misoStoryboard))
+        storyboard : read(grunt.template.process(nodeConfig.storyboard))
       }
     });
 
     // Write the contents out
-    grunt.file.write("dist/node/miso.storyboard.deps." +
+    grunt.file.write("dist/node/storyboard.deps." +
       grunt.template.process(grunt.config("pkg").version) + ".js",
     output);
   });
@@ -204,5 +203,7 @@ module.exports = function(grunt) {
 
   // Default task.
 grunt.registerTask("default", ["jshint", "connect:qunit", "qunit", "concat", "uglify", "node"]);
+
+grunt.registerTask("test", ["jshint", "connect:qunit", "qunit"]);
 };
 

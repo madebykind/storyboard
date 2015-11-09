@@ -1,4 +1,11 @@
-/* global _ */
+/**
+* Storyboard - v0.1.0 - 11/9/2015
+* http://github.com/madebykind/storyboard
+* Copyright (c) 2015 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-MIT 
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-GPL 
+*//* global _ */
 
 (function(global, _) {
 

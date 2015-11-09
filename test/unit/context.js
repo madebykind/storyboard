@@ -1,9 +1,13 @@
-/* global Miso,module,test,equals */
-module("Context and arguments");
+/* global Storyboard,QUnit,_ */
 
-test("extending a scene with additional methods", function() {
+QUnit.module("Context and arguments");
+
+QUnit.test("extending a scene with additional methods", function(assert) {
+  assert.expect(1);
+  var testDone = assert.async();
+
   var done = false;
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     boom : function() {
       done = true;
     },
@@ -12,63 +16,76 @@ test("extending a scene with additional methods", function() {
     }
   });
 
-  app.to("enter");
-  equals(done, true);
+  app.to("enter")
+  .then(function(){
+    assert.equal(done, true, "additional method is available in scene enter()");
+    testDone();
+  });
 });
 
-test("handlers have access arguments passed to transition", 4, function() {
-  var app = new Miso.Storyboard({
+QUnit.test("handlers can access arguments passed to transition", function(assert) {
+  assert.expect(4);
+  var testDone = assert.async();
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {
         exit : function(a, b) {
-          equals(a, 44);
-          equals(b.power, "full");
+          assert.equal(a, 44);
+          assert.equal(b.power, "full");
         }
       },
       loaded : {
         enter : function(a, b) {
-          equals(a, 44);
-          equals(b.power, "full");
+          assert.equal(a, 44);
+          assert.equal(b.power, "full");
         }
       }
     }
   });
 
-  app.start().then(function() {
-    app.to("loaded", [44, { power : "full" }]);
+  app.start()
+  .then(function() {
+    return app.to("loaded", [44, { power : "full" }]);
+  })
+  .then(function(){
+    testDone();
   });
 
 });
 
-test("Applying a context to a simple scene", function() {
+QUnit.test("Applying a context to a simple scene", function(assert) {
+  var testDone = assert.async();
+  assert.expect(2);
+
   var context = {
     a : true,
     b : 96
   };
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     context : context,
     initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
-        },
-        exit : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          assert.equal(this.a, true);
+          assert.equal(this.b, 96);
         }
       }
     }
   });
-  app.start();
+  app.start().then(function(){
+    testDone();
+  });
 
 });
 
-test("Applying a context to a simple scene and then switching it", function() {
-  stop();
+QUnit.test("Applying a context to a simple scene and then switching it", function(assert) {
+  var testDone = assert.async();
+  assert.expect(6);
+
   var context1 = {
     a : true,
     b : 96
@@ -79,73 +96,79 @@ test("Applying a context to a simple scene and then switching it", function() {
     b : 1
   };
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     context : context1,
     initial : "c1",
     scenes : {
       c1 : {
         enter : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          assert.equal(this.a, true);
+          assert.equal(this.b, 96);
         },
         exit : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          assert.equal(this.a, false);
+          assert.equal(this.b, 1);
         }
       },
       c2 : {
         enter : function() {
-          equals(this.a, false);
-          equals(this.b, 1);
+          assert.equal(this.a, false);
+          assert.equal(this.b, 1);
         },
         exit : function() {
-          equals(this.a, false);
-          equals(this.b, 1);
-          start();
+          testDone();
         }
       },
       end : {}
     }
   });
 
-  app.subscribe("c1:exit", function() {
+  app.start()
+  .then(function(){
     app.setContext(context2);
-  });
-
-  app.start().then(function() {
-    app.to("c2").then(function() {
-      app.to("end");
-    });
-  });
+  })
+  .then(function() {
+    return app.to("c2")
+  })
+  .then(function() {
+    return app.to("end");
+  })
 
 });
 
-test("applying a context to nested rigs", 4, function() {
+QUnit.test("applying a context to nested rigs", function(assert) {
+  assert.expect(4);
+  var testDone = assert.async();
+
   var context = {
     a : true,
     b : 96
   };
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     context : context,
     initial : "unloaded",
     scenes : {
       unloaded : {
         enter : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          assert.equal(this.a, true);
+          assert.equal(this.b, 96);
         },
         exit : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          assert.equal(this.a, true);
+          assert.equal(this.b, 96);
         }
       },
       loaded : {}
     }
   });
 
-  app.start().then(function() {
-    app.to("loaded");
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .then(function(){
+    testDone();
   });
 
 });

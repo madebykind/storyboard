@@ -1,10 +1,10 @@
  
 module.exports = function(grunt) {
 
-  // TODO: ditch this when grunt v0.4 is released
-  grunt.util = grunt.util || grunt.utils;
+  // // TODO: ditch this when grunt v0.4 is released
+  // grunt.util = grunt.util || grunt.utils;
 
-  var _ = grunt.util._;
+  // var _ = grunt.util._;
   // Shorthand Grunt functions
   var log = grunt.log;
 
@@ -18,7 +18,7 @@ module.exports = function(grunt) {
     });
 
     // Write the contents out
-    grunt.file.write("dist/node/miso.storyboard." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
+    grunt.file.write("dist/node/storyboard." + grunt.template.process(grunt.config("pkg").version) + ".js", output);
   });
 
 };

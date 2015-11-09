@@ -1,20 +1,27 @@
-/* global Miso,module,test,equals */
+/* global Storyboard,QUnit,_ */
 
-module("Building complex scenes");
+QUnit.module("Building complex scenes");
 
-test("scenes names get set when they're attached", function() {
-  var myStoryboard = new Miso.Storyboard({});
-  var app = new Miso.Storyboard({
+QUnit.test("scenes names get set when they're attached", function(assert) {
+
+  assert.expect(1);
+
+  var myStoryboard = new Storyboard({});
+  var app = new Storyboard({
     initial : "base",
     scenes : { base : myStoryboard }
   });
 
-  equals(app.scenes["base"].name, "base");
+  assert.equal(app.scenes["base"].name, "base");
 });
 
-test("predefining scenes", function() {
+QUnit.test("predefining scenes", function(assert) {
+
+  var testDone = assert.async();
+  assert.expect(1);
+
   var order = [];
-  var sceneA = new Miso.Storyboard({
+  var sceneA = new Storyboard({
     enter : function() {
       order.push("a");
     },
@@ -23,13 +30,13 @@ test("predefining scenes", function() {
     }
   });
 
-  var sceneB = new Miso.Storyboard({
+  var sceneB = new Storyboard({
     enter : function() {
       order.push("c");
     }
   });
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : sceneA,
@@ -38,14 +45,20 @@ test("predefining scenes", function() {
   });
 
   app.start().then(function() {
-    app.to("loaded");
-    equals(order.join(""), "abc");
+    return app.to("loaded");
+  })
+  .then(function() {
+    assert.equal(order.join(""), "abc");
+    testDone();
   });
 });
 
-test("Using as engine as a scene", function() {
+QUnit.test("Using as engine as a scene", function(assert) {
+  var testDone = assert.async();
+  assert.expect(1);
+
   var order = [];
-  var subStoryboard = new Miso.Storyboard({
+  var subStoryboard = new Storyboard({
     scenes : {
       enter : {
         enter : function() {
@@ -65,7 +78,7 @@ test("Using as engine as a scene", function() {
     initial : "enter"
   });
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : subStoryboard,
@@ -78,17 +91,23 @@ test("Using as engine as a scene", function() {
   });
 
   app.start().then(function() {
-    app.to("loaded");
-    equals(order.join(""), "abcd");
+    return app.to("loaded");
+  })
+  .then(function(){
+    assert.equal(order.join(""), "abcd");
+    testDone();
   });
 
 });
 
 
-test("Nesting 3 engines inside each other", function() {
+QUnit.test("Nesting 3 engines inside each other", function(assert) {
+  var testDone = assert.async();
+  assert.expect(1);
+
   var order = [];
 
-  var inner = new Miso.Storyboard({
+  var inner = new Storyboard({
     initial : "enter",
     scenes : {
       enter : {
@@ -100,7 +119,7 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var outer = new Miso.Storyboard({
+  var outer = new Storyboard({
     initial : "enter",
     scenes : {
       enter : {
@@ -113,7 +132,7 @@ test("Nesting 3 engines inside each other", function() {
     defer : true
   });
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "a",
     scenes : {
       a : {
@@ -126,42 +145,52 @@ test("Nesting 3 engines inside each other", function() {
     }
   });
 
-  app.start().then(function() {
-    app.to("b");
-    app.to("c");
-    equals(order.join(""), "abc");
+  app.start()
+  .then(function() {
+    return app.to("b");
+  })
+  .then(function(){
+    return app.to("c");
+  })
+  .then(function(){
+    assert.equal(order.join(""), "abc");
+    testDone();
   });
 });
 
-test("applying a context to nested rigs", 6, function() {
+QUnit.test("applying a context to nested rigs", function(assert) {
+  var testDone = assert.async();
+  assert.expect(6);
+
   var context = {
     a : true,
     b : 96
   };
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     context : context,
     initial : "unloaded",
+    assert: assert,
     scenes : {
       unloaded : {
         enter : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          app.assert.equal(this.a, true);
+          app.assert.equal(this.b, 96);
         },
         exit : function() {
-          equals(this.a, true);
-          equals(this.b, 96);
+          app.assert.equal(this.a, true);
+          app.assert.equal(this.b, 96);
         }
       },
 
-      loaded : new Miso.Storyboard({
+      loaded : new Storyboard({
         initial : "enter",
         scenes : {
 
           enter : {
             enter : function() {
-              equals(this.a, true, "true in nested scene");
-              equals(this.b, 96, "true in nested scene");
+              app.assert.equal(this.a, true, "true in nested scene");
+              app.assert.equal(this.b, 96, "true in nested scene");
             }
           },
 
@@ -172,19 +201,27 @@ test("applying a context to nested rigs", 6, function() {
     }
   });
 
-  app.start().then(function() {
-    app.to("loaded");
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .then(function(){
+    testDone();
   });
 });
 
-test("nesting with defaulted scene definitions on children", function() {
+QUnit.test("nesting with defaulted scene definitions on children", function(assert) {
+  var testDone = assert.async();
+
   var order = [
     "unloaded:enter",
     "loading:files",
     "loading:templates",
     "something:enter"
-  ], actualOrder = [];
-  var loading = new Miso.Storyboard({
+  ];
+  var actualOrder = [];
+
+  var loading = new Storyboard({
     initial : "files",
     scenes : {
       files : {
@@ -200,7 +237,7 @@ test("nesting with defaulted scene definitions on children", function() {
     }
   });
 
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {
@@ -217,13 +254,19 @@ test("nesting with defaulted scene definitions on children", function() {
     }
   });
 
-  app.start().then(function() {
-    app.to("loaded").then(function() {
-      loading.to("templates").then(function() {
-        app.to("something");
-        equals(order.join(""), actualOrder.join(""));
-      });
-    });
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .then(function() {
+    return loading.to("templates");
+  })
+  .then(function() {
+    return app.to("something");
+  })
+  .then(function(){
+    assert.equal(order.join(""), actualOrder.join(""));
+    testDone();
   });
 
 });

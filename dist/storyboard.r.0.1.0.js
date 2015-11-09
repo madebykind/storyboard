@@ -1,4 +1,18 @@
-/* global _ */
+/**
+* Storyboard - v0.1.0 - 11/9/2015
+* http://github.com/madebykind/storyboard
+* Copyright (c) 2015 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-MIT 
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-GPL 
+*//**
+* Storyboard - v0.1.0 - 11/9/2015
+* http://github.com/madebykind/storyboard
+* Copyright (c) 2015 Alex Graul, Irene Ros, Rich Harris;
+* Dual Licensed: MIT, GPL
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-MIT 
+* https://github.com/madebykind/storyboard/blob/master/LICENSE-GPL 
+*//* global _ */
 
 (function(global, _) {
 
@@ -439,3 +453,25 @@
   global.Storyboard = Storyboard;
 
 }(this, _));
+
+/* global exports,define,module */
+(function(global) {
+
+  var Storyboard = global.Storyboard || {};
+  delete window.Storyboard;
+
+  // CommonJS module is defined
+  if (typeof exports !== "undefined") {
+    if (typeof module !== "undefined" && module.exports) {
+      // Export module
+      module.exports = Storyboard;
+    }
+    exports.storyboard = Storyboard;
+
+  } else if (typeof define === "function" && define.amd) {
+    // Register as a named module with AMD.
+    define("Storyboard", [], function() {
+      return Storyboard;
+    });
+  }
+}(this));

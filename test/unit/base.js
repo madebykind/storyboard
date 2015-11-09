@@ -1,19 +1,20 @@
-/* global Miso,module,test,ok,_ */
+/* global Storyboard,QUnit,_ */
 
 var app;
-module("base", {
-  setup : function() {
-    app = new Miso.Storyboard({
+
+QUnit.module("base", {
+  beforeEach: function() {
+    app = new Storyboard({
       counter : 0,
       initial : "a",
       scenes : {
         a : {
-          enter : function() {
+          enter : function(assert) {
             this.counter = 0;
           },
-          exit : function() {
+          exit : function(assert) {
             this.helper();
-            ok(this.counter === 1, "a counter is 1");
+            assert.ok(this.counter === 1, "a counter is 1");
           },
           helper : function() {
             this.counter++;
@@ -22,12 +23,12 @@ module("base", {
         },
 
         b : {
-          enter : function() {
+          enter : function(assert) {
             this.counter = 0;
           },
-          exit : function() {
+          exit : function(assert) {
             this.helper();
-            ok(this.counter === 1, "b counter is 1");
+            assert.ok(this.counter === 1, "b counter is 1");
           },
           helper : function() {
             this.counter++;
@@ -41,17 +42,21 @@ module("base", {
       helper : function() {
         this.counter += 10;
       }
-
     });
   },
-  teardown : function() {
+  afterEach: function() {
     app = null;
   }
 });
 
-test("Function only scenes", function() {
+QUnit.test("Function only scenes", function(assert) {
+  var testDone = assert.async();
+  var step;
+
+  assert.expect(1);
+  
   var nums = [];
-  var sb = new Miso.Storyboard({
+  var sb = new Storyboard({
     initial : "a",
     scenes: {
       a : function() {
@@ -70,60 +75,92 @@ test("Function only scenes", function() {
       }
     }
   });
-
-  sb.start().then(function() {
-    sb.to("b").then(function() {
-      sb.to("c").then(function() {
-        sb.to("d").then(function() {
-          ok(_.isEqual(nums, [1,2,3,4]), "nums are equal");
-        });
-      });
-    });
+  
+  sb.start()
+  .then(function() {
+    return sb.to("b");
+  })
+  .then(function() {
+    return sb.to("c");
+  })
+  .then(function() {
+    return sb.to("d")
+  })
+  .then(function() {
+    assert.ok(_.isEqual(nums, [1,2,3,4]), "nums are equal");
+    testDone();
   });
 });
 
-test("Create storyboard", 3, function() {
-  app.start().then(function() {
-    app.to("b").then(function() {
-      app.to("ending").then(function() {
-        ok(app.counter === 20, app.counter);
-      });
-    });
+QUnit.test("Create storyboard", function(assert) {
+  var testDone = assert.async();
+  assert.expect(3);
+  
+  app.start()
+  .then(function() {
+    return app.to("b", [assert]);
+  })
+  .then(function() {
+    return app.to("ending", [assert]);
+  })
+  .then(function() {
+    assert.ok(app.counter === 20, app.counter);
+    testDone();
   });
+
 });
 
-test("Cloning", 6, function() {
-  app.start().then(function() {
-    app.to("b").then(function() {
-      app.to("ending").then(function() {
-        ok(app.counter === 20, app.counter);
-      });
-    });
+QUnit.test("Cloning", function(assert) {
+  var done1 = assert.async();
+  var done2 = assert.async();
+
+  assert.expect(6);
+
+  app.start()
+  .then(function() {
+    return app.to("b",[assert]);
+  })
+  .then(function() {
+    return app.to("ending", [assert]);
+  })
+  .then(function() {
+    assert.ok(app.counter === 20, app.counter);
+    return done1();
   });
 
   var app2 = app.clone();
+  
   // counter now starts at 20!
-  app2.start().then(function() {
-    app2.to("b").then(function() {
-      app2.to("ending").then(function() {
-        ok(app2.counter === 20, app2.counter);
-      });
-    });
+  app2.start()
+  .then(function() {
+    return app2.to("b",[assert]);
+  })
+  .then(function() {
+    return app2.to("ending", [assert]);
+  })
+  .then(function() {
+    assert.ok(app2.counter === 20, app2.counter);
+    return done2();
   });
 });
 
-test("Cloning deeply", function() {
-  app = new Miso.Storyboard({
+QUnit.test("Cloning deeply", function(assert) {
+  var done1 = assert.async();
+  var done2 = assert.async();
+
+  assert.expect(6);
+
+  var app = new Storyboard({
     counter : 0,
     initial : "a",
     scenes : {
-      a : new Miso.Storyboard({
+      a : new Storyboard({
         enter : function() {
           this.counter = 0;
         },
-        exit : function() {
+        exit : function(assert) {
           this.helper();
-          ok(this.counter === 1, "a counter is 1");
+          assert.ok(this.counter === 1, "a counter is 1");
         },
         helper : function() {
           this.counter++;
@@ -134,9 +171,9 @@ test("Cloning deeply", function() {
         enter : function() {
           this.counter = 0;
         },
-        exit : function() {
+        exit : function(assert) {
           this.helper();
-          ok(this.counter === 1, "b counter is 1");
+          assert.ok(this.counter === 1, "b counter is 1");
         },
         helper : function() {
           this.counter++;
@@ -150,21 +187,29 @@ test("Cloning deeply", function() {
     }
   });
 
-   app.start().then(function() {
-    app.to("b").then(function() {
-      app.to("ending").then(function() {
-        ok(app.counter === 20, app.counter);
-      });
-    });
+  app.start()
+  .then(function() {
+    return app.to("b", [assert]);
+  })
+  .then(function() {
+    return app.to("ending", [assert]);
+  })
+  .then(function() {
+    assert.ok(app.counter === 20, app.counter);
+    return done1();
   });
 
   var app2 = app.clone();
+
   // counter now starts at 20!
   app2.start().then(function() {
-    app2.to("b").then(function() {
-      app2.to("ending").then(function() {
-        ok(app2.counter === 20, app2.counter);
-      });
-    });
+    return app2.to("b", [assert]);
+  })
+  .then(function() {
+    return app2.to("ending", [assert]);
+  })
+  .then(function() {
+    assert.ok(app2.counter === 20, app2.counter);
+    return done2();
   });
 });

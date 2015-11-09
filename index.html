@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Scenic</title>
+    <link rel="stylesheet" href="">
+</head>
+<body>
+<!--
+    <section id="scene-1-1">
+        <h2>Depth 1</h2>
+        <h1>Scene 1</h1>
+    </section>
+    <section id="scene-1-2">
+        <h2>Depth 1</h2>
+        <h1>Scene 2</h1>
+    </section>
+    <section id="scene-1-3">
+        <h2>Depth 1</h2>
+        <h1>Scene 3</h1>
+    </section>
+    <section id="scene-1-4">
+        <h2>Depth 1</h2>
+        <h1>Scene 4</h1>
+    </section>
+-->
+<script src="libs/lodash.custom.js"></script>
+<script src="libs/rsvp.js"></script>
+<script src="libs/backbone-events-standalone.js"></script>
+<script src="src/storyboard.js"></script>
+
+<script>
+var storyboard = {
+    initial: "scene-1",
+    scenes: {
+        "scene-1" : {
+            title: "Scene 1",
+            prevScene:  null,
+            nextScene:  "scene-2",
+            enter: function(){
+                var done = this.async();
+                console.log('enter scene 1');
+
+                done();
+            },
+            exit: function(){
+                var done = this.async();
+                console.log('exit scene 1');
+                done();
+            }
+        },
+        "scene-2" : {
+            title: "Scene 2",
+            prevScene:  "scene-1",
+            nextScene:  "scene-3",
+            initial: "scene-2-1",
+            // scenes: {
+            //     "enter" : {
+            //         title: "Scene 2 entrypoint",
+            //         prevScene:  "scene-1",
+            //         nextScene:  "scene-2-1",
+            //         enter: function(){
+            //             var done = this.async();
+            //             console.log('enter scene 2 entrypoint');
+
+            //             done();
+            //         },
+            //         exit: function(){
+            //             var done = this.async();
+            //             console.log('exit scene 2 entrypoint');
+            //             done();
+
+            //         }
+            //     },
+            //     "scene-2-1" : {
+            //         title: "Scene 2, 1",
+            //         prevScene:  "enter",
+            //         nextScene:  "scene-2-2",
+            //         enter: function(){
+            //             console.log('enter scene 2-1');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 2-1');
+            //         }
+            //     },
+            //     "scene-2-2" : {
+            //         title: "Scene 2, 2",
+            //         prevScene:  "scene-2-1",
+            //         nextScene:  "scene-2-3",
+            //         enter: function(){
+            //             console.log('enter scene 2-2');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 2-2');
+            //         }
+            //     },
+            //     "scene-2-3" : {
+            //         title: "Scene 2, 3",
+            //         prevScene:  "scene-2-2",
+            //         nextScene:  "exit",
+            //         enter: function(){
+            //             console.log('enter scene 2-3');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 2-3');
+            //         }
+            //     },
+            //     "exit" : {
+            //         title: "Scene 2 exitpoint",
+            //         nextScene:  "scene-3",
+            //         prevScene:  "scene-2-3",
+            //         enter: function(){
+            //             var done = this.async();
+            //             console.log('enter scene 2 exitpoint');
+            //             done();
+            //         }
+            //     },
+            // }
+        },
+        "scene-3" : {
+            title: "Scene 3",
+            prevScene:  "scene-2",
+            nextScene:  "scene-4",
+            // scenes: {
+            //     "enter" : {
+            //         title: "Scene 3 entrypoint",
+            //         prevScene:  "scene-2",
+            //         nextScene:  "scene-3-1",
+            //         enter: function(){
+            //             var done = this.async();
+            //             console.log('enter scene 3 entrypoint');
+
+            //             done();
+            //         },
+            //         exit: function(){
+            //             var done = this.async();
+            //             console.log('exit scene 3 entrypoint');
+            //             done();
+
+            //         }
+            //     },
+            //     "scene-3-1" : {
+            //         title: "Scene 3, 1",
+            //         prevScene:  "enter",
+            //         nextScene:  "scene-3-2",
+            //         enter: function(){
+            //             console.log('enter scene 3-1');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 3-1');
+            //         }
+            //     },
+            //     "scene-3-2" : {
+            //         title: "Scene 3, 2",
+            //         prevScene:  "scene-3-1",
+            //         nextScene:  "scene-3-3",
+            //         enter: function(){
+            //             console.log('enter scene 3-2');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 3-2');
+            //         }
+            //     },
+            //     "scene-3-3" : {
+            //         title: "Scene 3, 3",
+            //         prevScene:  "scene-3-2",
+            //         nextScene:  "exit",
+            //         enter: function(){
+            //             console.log('enter scene 3-3');
+            //         },
+            //         exit: function(){
+            //             console.log('exit scene 3-3');
+            //         }
+            //     },
+            //     "exit" : {
+            //         title: "Scene 3 exitpoint",
+            //         nextScene:  "scene-4",
+            //         prevScene:  "scene-3-3",
+            //         enter: function(){
+            //             var done = this.async();
+            //             console.log('enter scene 3 exitpoint');
+            //             done();
+            //         }
+            //     },
+            // }
+        },
+        "scene-4" : {
+            title: "Scene 4",
+            prevScene:  "scene-3",
+            nextScene:  null,
+            enter: function(){
+                console.log('enter scene 4');
+            },
+            exit: function(){
+                console.log('exit scene 4');
+            }
+        },
+        "scene-5" : {
+            title: "Scene 5",
+            prevScene:  "scene-4",
+            nextScene:  null,
+            enter: function(){
+                console.log('enter scene 5');
+            },
+            exit: function(){
+                console.log('exit scene 5');
+            }
+        },
+    }
+};
+
+var app = new Storyboard(storyboard);
+
+</script>
+</body>
+</html>

@@ -1,8 +1,13 @@
-/* global Miso,module,test,ok,equals */
-module("Synchronous Tests");
+/* global Storyboard,QUnit */
 
-test("Changing synchronous states", function() {
-  var app = new Miso.Storyboard({
+QUnit.module("Synchronous enter/exit Tests");
+
+QUnit.test("Changing states", function(assert) {
+  var testDone = assert.async();
+
+  assert.expect(2);
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
@@ -10,17 +15,24 @@ test("Changing synchronous states", function() {
     }
   });
 
-  app.start().then(function() {
-    equals(app.scene(), "unloaded", "initial state is unloaded");
-    var done = app.to("loaded");
-    ok(app.is("loaded"), "changed state is loaded");
-    equals(done.state(), "resolved");
+  app.start()
+  .then(function() {
+    assert.equal(app.scene(), "unloaded", "initial state is unloaded");
+    return app.to("loaded");
+  })
+  .then(function() {
+    assert.ok(app.is("loaded"), "changed state is loaded");
+    testDone();
   });
 
 });
 
-test("Changing between multiple synchronous states", function() {
-  var app = new Miso.Storyboard({
+QUnit.test("Changing between multiple states", function(assert) {
+  var testDone = assert.async();
+
+  assert.expect(4);
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
@@ -30,18 +42,29 @@ test("Changing between multiple synchronous states", function() {
   });
 
   app.start().then(function() {
-    ok(app.is("unloaded"), "initial state is unloaded");
-    app.to("loaded");
-    ok(app.is("loaded"), "state is loaded");
-    app.to("drilldown");
-    ok(app.is("drilldown"), "state is drill");
-    app.to("loaded");
-    ok(app.is("loaded"), "state is loaded");
+    assert.ok(app.is("unloaded"), "initial state is unloaded");
+    return app.to("loaded");
+  })
+  .then(function(){
+    assert.ok(app.is("loaded"), "state is loaded");
+    return app.to("drilldown");
+  })
+  .then(function(){
+    assert.ok(app.is("drilldown"), "state is drill");
+    return app.to("loaded");
+  })
+  .then(function(){
+    assert.ok(app.is("loaded"), "state is loaded");
+    testDone();
   });
- });
+});
 
-test("returning false on enter stops transition", 2, function() {
-  var app = new Miso.Storyboard({
+QUnit.test("returning false on enter stops transition", function(assert) {
+  var testDone = assert.async();
+
+  assert.expect(2);
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
@@ -53,39 +76,23 @@ test("returning false on enter stops transition", 2, function() {
     }
   });
 
-  app.start().then(function() {
-    var promise = app.to("loaded");
-    promise.fail(function() {
-      ok(true);
-    });
-    equals(app.scene(), "unloaded");
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .catch(function() {
+    assert.ok(true, "promise rejected");
+    assert.equal(app.scene(), "unloaded", "scene still unloaded");
+    testDone();
   });
 });
 
-test("returning undefined on enter or exit does not cause a failure", 2, function() {
-  var app = new Miso.Storyboard({
-    initial : "unloaded",
-    scenes : {
-      unloaded : {
-        exit : function() {}
-      },
-      loaded : {
-        enter : function() {}
-      }
-    }
-  });
+QUnit.test("returning false on exit stops transition", function(assert) {
+  var testDone = assert.async();
 
-  app.start().then(function() {
-    var promise = app.to("loaded");
-    promise.done(function() {
-      ok(true);
-    });
-    equals(app.scene(), "loaded");
-  });
-});
+  assert.expect(2);
 
-test("returning false on exit stops transition", 2, function() {
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       loaded : {},
@@ -97,11 +104,41 @@ test("returning false on exit stops transition", 2, function() {
     }
   });
 
-  app.start().then(function() {
-    var promise = app.to("loaded");
-    promise.fail(function() {
-      ok(true);
-    });
-    equals(app.scene(), "unloaded");
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .catch(function() {
+    assert.ok(true, "promise rejected");
+    assert.equal(app.scene(), "unloaded", "scene still unloaded");
+    testDone();
+  });
+});
+
+
+QUnit.test("returning undefined on enter or exit does not cause a failure", function(assert) {
+  var testDone = assert.async();
+
+  assert.expect(1);
+
+  var app = new Storyboard({
+    initial : "unloaded",
+    scenes : {
+      unloaded : {
+        exit : function() {}
+      },
+      loaded : {
+        enter : function() {}
+      }
+    }
+  });
+
+  app.start()
+  .then(function() {
+    return app.to("loaded");
+  })
+  .then(function() {
+    assert.equal(app.scene(), "loaded");
+    testDone();
   });
 });

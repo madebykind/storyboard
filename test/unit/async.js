@@ -1,63 +1,83 @@
-/* global Miso,module,test,equals,ok,stop,start,_ */
-module("Asynchronous tests");
+/* global Storyboard,QUnit,_ */
 
-test("Asynchronous enter", function() {
-  var done;
-  var app = new Miso.Storyboard({
+QUnit.module("Asynchronous enter/exit tests");
+
+QUnit.test("Attempting to start a second transition is rejected if one in progress", function(assert) {
+  assert.expect(5);
+
+  var testDone = assert.async();
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
-      loaded : {
-        enter : function() {
-          done = this.async();
-        }
-      }
-    }
-  });
-  app.start().then(function() {
-    app.to("loaded");
-    ok(app.scene("unloaded"), "should still be unloaded during transition");
-    ok(app.inTransition(), "should be in transition");
-    ok(app.to("loaded").state(),"rejected", "can't start a second transition");
-    done();
-    ok(app.scene("loaded"));
-    ok(!app.inTransition(), "should no longer be in transition");
-  });
-});
-
-test("Cancelling a transition in progress", 4, function() {
-  var done;
-  var app = new Miso.Storyboard({
-    initial : "unloaded",
-    scenes : {
-      unloaded : {
-        exit : function() {
-          done = this.async();
-        }
-      },
       loaded : {}
     }
   });
 
   app.start().then(function() {
     var promise = app.to("loaded");
-    ok(app.inTransition(), "entered transition");
-    promise.fail(function() {
-      ok(true, "transition promise rejected");
+
+    assert.ok(app.is("unloaded"), "should still be unloaded during transition");
+    assert.ok(app.inTransition(), "should be in transition");
+
+    app.to("loaded").catch(function(){
+      assert.ok(true, "attempt to start a second transition is rejected");
     });
-    app.cancelTransition();
-    ok(!app.inTransition(), "no longer in transition");
-    promise = app.to("loaded");
-    promise.done(function() {
-      ok(true, "second attempt succeeds");
+
+    promise.then(function(){
+      assert.equal(app.scene(), "loaded", "scene is now 'loaded'");
+
+      assert.ok(!app.inTransition(), "app no longer in transition");
+      testDone();
     });
-    done(true);
   });
 });
 
-test("async handlers are executed in the correct order", 1, function() {
+QUnit.test("Cancelling a transition in progress", function(assert) {
+  assert.expect(4);
+  var testDone = assert.async();
+
+  var done;
+
+  var app = new Storyboard({
+    initial : "unloaded",
+    scenes : {
+      unloaded : {},
+      loaded : {}
+    }
+  });
+
+  app.start().then(function() {
+
+    var promise = app.to("loaded");
+
+    assert.ok(app.inTransition(), "entered transition");
+
+    promise.catch(function() {
+      assert.ok(true, "transition promise rejected");
+    });
+
+    app.cancelTransition();
+
+    assert.ok(!app.inTransition(), "no longer in transition");
+
+    promise = app.to("loaded");
+
+    promise.then(function() {
+      assert.ok(true, "second attempt succeeds");
+      testDone();
+    });
+  });
+});
+
+
+QUnit.test("async handlers are executed in the correct order", function(assert) {
+  assert.expect(1);
+  var testDone = assert.async();
+
   var order = [];
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {
@@ -79,17 +99,23 @@ test("async handlers are executed in the correct order", 1, function() {
 
   app.start().then(function() {
     app.to("loaded");
-    stop();
+
     setTimeout(function() {
-      start();
-      equals(order.join(""), "ab", "handlers fired in the corect order");
+      assert.equal(order.join(""), "ab", "handlers fired in the corect order");
+      testDone();
     }, 200);
+
   });
 });
 
-test("async fail on enter stops transition", 4, function() {
+
+QUnit.test("async fail on enter stops transition", function(assert) {
+  assert.expect(4);
+
+  var testDone = assert.async();
+
   var pass;
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
@@ -103,19 +129,33 @@ test("async fail on enter stops transition", 4, function() {
 
   app.start().then(function() {
     var promise = app.to("loaded");
-    ok(app.inTransition());
-    pass(false);
-    promise.fail(function() {
-      ok(true);
-    });
-    ok(!app.inTransition());
-    equals(app.scene(), "unloaded");
+    assert.ok(app.inTransition(), "app is in transition");
+
+    // need to wait until loaded.enter has been called
+    setTimeout(function(){
+      continueTest();
+    }, 1);
+
+
+    function continueTest() {
+      pass(false);
+
+      promise.catch(function() {
+        assert.ok(true, "passing false to this.async invocation in enter function cancels the transition");
+        assert.ok(!app.inTransition(), "app is no longer transitioning");
+        assert.equal(app.scene(), "unloaded", "app is still in 'unloaded' scene");
+        testDone();
+      });
+    }
   });
 });
 
-test("async fail on exit stops transition", 4, function() {
+QUnit.test("async fail on exit stops transition", function(assert) {
+  var testDone = assert.async();
+  assert.expect(4);
+
   var pass;
-  var app = new Miso.Storyboard({
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {
@@ -127,20 +167,35 @@ test("async fail on exit stops transition", 4, function() {
     }
   });
 
+
   app.start().then(function() {
     var promise = app.to("loaded");
-    ok(app.inTransition());
-    pass(false);
-    promise.fail(function() {
-      ok(true);
-    });
-    ok(!app.inTransition());
-    equals(app.scene(), "unloaded");
+    assert.ok(app.inTransition(), "app is in transition before async fail");
+
+    // need to wait until unloaded.exit has been called
+    setTimeout(function(){
+      continueTest();
+    }, 1);
+
+    function continueTest() {
+      pass(false);
+
+      promise.catch(function() {
+        assert.ok(true, "passing false to this.async invocation in exit function cancels the transition");
+        assert.ok(!app.inTransition(), "app no longer transitioning");
+        assert.equal(app.scene(), "unloaded", "app is still in 'unloaded' scene");
+        testDone();
+      });
+    }
   });
 });
 
-test("passing a custom deferred to to", 1, function() {
-  var app = new Miso.Storyboard({
+QUnit.test("passing a custom deferred to to()", function(assert) {
+  assert.expect(1);
+
+  var testDone = assert.async();
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {},
@@ -149,10 +204,14 @@ test("passing a custom deferred to to", 1, function() {
   });
 
   app.start().then(function() {
-    var done = _.Deferred();
-    done.done(function() {
-      ok(true);
+    var done = app.deferred();
+
+    done.promise.then(function() {
+      assert.ok(true, "custom deferred is resolved by to()");
+      testDone();
     });
+
+
     app.to("loaded", [], done);
   });
 });

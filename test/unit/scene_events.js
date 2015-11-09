@@ -1,8 +1,10 @@
-/* global Miso,module,test,ok,_ */
+/* global Storyboard,QUnit,_ */
 
-module("Storyboard Event Integration");
+QUnit.module("Storyboard Event Integration");
 
-test("Basic transition events", function() {
+QUnit.test("Basic transition events", function(assert) {
+  var testDone = assert.async();
+  assert.expect(1);
 
   var events = [
     "start",
@@ -26,9 +28,19 @@ test("Basic transition events", function() {
     "enter",
     "ending:enter",
     "end"
-  ], actualEvents = [];
+  ];
+  var actualEvents = [];
 
-  var app = new Miso.Storyboard({
+  var eventList = [
+    "start","exit",
+    "enter","end",
+    "unloaded:enter", "unloaded:exit",
+    "loaded:enter", "loaded:exit",
+    "ending:enter", "ending:exit"
+  ];
+
+
+  var app = new Storyboard({
     initial : "unloaded",
     scenes : {
       unloaded : {
@@ -55,24 +67,23 @@ test("Basic transition events", function() {
     }
   });
 
-  var eventList = [
-    "start","exit","enter","end",
-    "unloaded:enter", "unloaded:exit",
-    "loaded:enter", "loaded:exit",
-    "ending:enter", "ending:exit"
-  ];
+  
   _.each(eventList, function(event) {
-    app.subscribe(event, function() {
+    app.on(event, function() {
       actualEvents.push(event);
     });
   });
 
-  app.start().then(function() {
-    app.to("loaded").then(function() {
-      app.to("ending").then(function() {
-        ok(_.isEqual(actualEvents, events), actualEvents);
-      });
-    });
+  app.start()
+  .then(function() {
+    return app.to("loaded")
+  })
+  .then(function() {
+    return app.to("ending")
+  })
+  .then(function() {
+    assert.ok(_.isEqual(actualEvents, events), actualEvents);
+    testDone();
   });
 
 });

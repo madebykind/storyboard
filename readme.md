@@ -1,12 +1,24 @@
-# Miso.Storyboard #
+** NB this is a fork of the original [Miso.storyboard repo](https://github.com/madebykind/storyboard) that:**
 
-Miso.Storyboard is a control flow library for organising your interactive content as scenes, making it easy to 
+* Uses [`RSVP.js`](https://github.com/tildeio/rsvp.js/) instead of `underscore.Deferred`
+* Updates all other dependencies (lodash, QUnit) to latest versions 
+* Is standalone (no Miso references)
+* Adds some features such as .next()` / `.prev()`, and improves handling of nested scenes
+
+It aims for, but does not promise, API compatability with the original project.
+
+Original Miso.storyboard readme follows below, updated docs to follow at some point, almost certainly...
+
+
+# Storyboard #
+
+Storyboard is a control flow library for organising your interactive content as scenes, making it easy to 
 handle complex transitions and manage state. Each scene can have handlers for how it should act 
 when it becomes the active scene and when it is no longer the active scene. Storyboards nest, 
 in that every single scene can actually be its own complex storyboard.
 
 ```javascript
- var app = new Miso.Storyboard({
+ var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     'unloaded' : {
@@ -36,7 +48,7 @@ be called when the final callback is complete, this is called the resolution fun
 will in turn then return a deferred that will not resolve (or reject) until all the handlers involved are complete.
 
 ```javascript
-var app = new Miso.Storyboard({
+var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     'unloaded' : {
@@ -67,7 +79,7 @@ loadingComplete.done(function() {
 
 
 ```javascript
-var app = new Miso.Storyboard({
+var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     unloaded : {},
@@ -86,7 +98,7 @@ It is also possible to pass in your own deferred to the `to` method, along
 with an array of arguments that will be passed to the `exit` and `enter` handlers.
 
 ```javascript
-var app = new Miso.Storyboard({
+var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     unloaded : {},
@@ -115,7 +127,7 @@ transition will be rejected. This can be managed inside handlers or by binding f
 method of the deferred returned by `to`.
 
 ```javascript
-var app = new Miso.Storyboard({
+var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     unloaded : {
@@ -155,7 +167,7 @@ You can pass additional methods to the definitions scenes in your storyboard
 to help structure your code in a more logical manner and break down big functions.
 
 ```javascript
-var app = new Miso.Storyboard({
+var app = new Storyboard({
   initial : 'unloaded',
   scenes : {
     unloaded : {
@@ -180,7 +192,7 @@ a larger storyboard, it could in turn be its own storyboard, with each slide bei
 defining each move between slides in a custom manner. 
 
 ```javscript
-var walkthrough = new Miso.Scene({
+var walkthrough = new Scene({
   initial : 'one',
   scenes : {
     one : {},
@@ -189,7 +201,7 @@ var walkthrough = new Miso.Scene({
   }
 });
 
-var app = new Miso.Scene({
+var app = new Scene({
   inital 'unloaded',
   scenes : {
     unloaded : {},
@@ -203,7 +215,7 @@ var app = new Miso.Scene({
 While the main goal of Storyboard is to help you manage your transition enter and exit phases, you can create simplified storyboards that only have `enter` behaviour like so:
 
 ```javscript
-var walkthrough = new Miso.Scene({
+var walkthrough = new Scene({
   initial : 'one',
   scenes : {
     one : function() {
@@ -230,7 +242,7 @@ walkthrough.start().then(function() {
 The above is functionaly equivalent to:
 
 ```javscript
-var walkthrough = new Miso.Scene({
+var walkthrough = new Scene({
   initial : 'one',
   scenes : {
     one : {
@@ -260,11 +272,11 @@ walkthrough.start().then(function() {
 
 ## Contributing ##
 
-To build Miso.Storyboard you'll need npm, node.js's package management system and grunt
+To build Storyboard you'll need npm, node.js's package management system and grunt
 
-`npm install miso.storyboard`
+`npm install storyboard`
 
-To build Miso.Storyboard, call
+To build Storyboard, call
 
 `grunt`
 
